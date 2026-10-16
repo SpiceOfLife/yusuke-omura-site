@@ -1,16 +1,17 @@
 {
   "name": "yusuke-omura-site",
   "private": true,
-  "description": "大村優介 Yusuke Omura 公式サイト（Firebase Hosting）",
+  "description": "大村優介 Yusuke Omura 公式サイト（Cloudflare Pages）",
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "node scripts/check.mjs",
     "serve": "node scripts/serve.mjs",
     "test": "playwright test",
-    "deploy": "npm run build && npm run check && firebase deploy --only hosting"
+    "deploy": "npm run build && npm run check && wrangler pages deploy dist --project-name yusuke-omura --branch main"
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0"
+    "@playwright/test": "1.63.0",
+    "wrangler": "4.142.0"
   }
 }

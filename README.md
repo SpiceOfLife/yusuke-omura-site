@@ -1,6 +1,6 @@
 # 大村優介 Yusuke Omura 公式サイト
 
-Firebase Hosting で公開する静的サイトです。フレームワークは使わず、小さなビルドスクリプトで `src/` から `dist/` を組み立てます。
+Cloudflare Pages（プロジェクト名 yusuke-omura）で公開する静的サイトです。フレームワークは使わず、小さなビルドスクリプトで `src/` から `dist/` を組み立てます。
 
 ## ページ
 
@@ -23,11 +23,10 @@ src/assets/js        main.js（共通の動き）, home.js, profile.js, numbers.
 src/assets/img       画像（Google Drive の宣材写真・ジャケットから作成）
 scripts/build.mjs    src → dist
 scripts/check.mjs    dist の参照切れ・メタ情報の検査
-scripts/serve.mjs    Firebase と同じ URL 形式（/profile）で dist を配信
+scripts/serve.mjs    Cloudflare Pages と同じ URL 形式（/profile）で dist を配信
 tests/               Playwright スモークテスト（PC・スマホ幅）
 site.config.json     サイトURL・名前・YouTube など
-firebase.json        Hosting 設定（cleanUrls・キャッシュ・セキュリティヘッダー）
-.firebaserc          Firebase プロジェクトID
+src/_headers         Cloudflare Pages のヘッダー（キャッシュ・セキュリティ）
 ```
 
 ## 手元で動かす
@@ -43,22 +42,21 @@ npx playwright install chromium && npm test
 
 ### 手動
 ```sh
-npm i -g firebase-tools
-firebase login
-npm run deploy           # build → check → firebase deploy --only hosting
+npx wrangler login       # ブラウザで Cloudflare にログイン
+npm run deploy           # build → check → wrangler pages deploy
 ```
 
 ### GitHub Actions（`.github/workflows/ci.yml`）
-- **Pull Request**: ビルド・検査・テストのあと、7日間有効のプレビューURLを PR にコメント
+- **Pull Request**: ビルド・検査・テストのあと `pr-<番号>.yusuke-omura.pages.dev` にプレビューを出し、URL を PR にコメント
 - **main への push**: 同じ検査のあと本番へ公開し、各ページが 200 を返すか確認
 
-リポジトリに次を登録してください。
+リポジトリに次を登録してください（ours-blanc-sites と同じトークンを使えます）。
 
 | 種類 | 名前 | 値 |
 |---|---|---|
-| Secret | `FIREBASE_SERVICE_ACCOUNT` | Firebase のサービスアカウント JSON（`firebase init hosting:github` で自動登録も可） |
-| Variable | `FIREBASE_PROJECT_ID` | 例: `yusuke-omura` |
-| Variable | `SITE_URL` | 例: `https://yusuke-omura.web.app` |
+| Secret | `CLOUDFLARE_API_TOKEN` | Cloudflare API トークン（Account › Cloudflare Pages › Edit） |
+| Variable | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare のアカウントID |
+| Variable | `SITE_URL` | 独自ドメインにした場合のみ（例: `https://yusukeomura.com`） |
 
 ## 独自ドメインにするとき
-Firebase コンソールの Hosting → 「カスタムドメインを追加」で設定し、`site.config.json` の `siteUrl` と変数 `SITE_URL` を新しいURLに変えます（OGP・canonical・sitemap に反映されます）。
+Cloudflare ダッシュボードの Workers & Pages → yusuke-omura → カスタムドメインで追加し、`site.config.json` の `siteUrl` と変数 `SITE_URL` を新しいURLに変えます（OGP・canonical・sitemap に反映されます）。

@@ -1,4 +1,4 @@
-// dist/ を Firebase Hosting と同じ cleanUrls 方式で配信する確認用サーバー（/profile → profile.html）。
+// dist/ を Cloudflare Pages と同じ URL 方式で配信する確認用サーバー（/profile → profile.html）。
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { join, extname, normalize } from "node:path";

@@ -1,5 +1,5 @@
-# PR: ビルド → 検査 → スモークテスト → Firebase のプレビューチャンネルへ公開し、URL を PR にコメント
-# main への push: 同じ検査のあと本番（live）へ公開
+# PR: ビルド → 検査 → スモークテスト → Cloudflare Pages のプレビュー（pr-番号 ブランチ）へ公開し、URL を PR にコメント
+# main への push: 同じ検査のあと本番へ公開し、各ページが 200 を返すか確認
 name: CI / Deploy
 on:
   pull_request:
@@ -12,7 +12,10 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PROJECT: yusuke-omura
 
 jobs:
   check:
@@ -27,42 +30,45 @@ jobs:
       - run: npm run check
       - run: npm test
       - uses: actions/upload-artifact@v4
-        with: { name: dist, path: dist, retention-days: 7 }
+        with: { name: dist, path: dist, include-hidden-files: true, retention-days: 7 }
 
   preview:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     needs: check
     runs-on: ubuntu-latest
-    permissions: { contents: read, pull-requests: write, checks: write }
+    permissions: { contents: read, pull-requests: write }
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with: { name: dist, path: dist }
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - id: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler@4.142.0 pages deploy dist --project-name "$PROJECT" --branch "pr-${{ github.event.number }}" | tee out.txt
+          echo "url=https://pr-${{ github.event.number }}.$PROJECT.pages.dev" >> "$GITHUB_OUTPUT"
+      - uses: actions/github-script@v7
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
-          expires: 7d
+          script: |
+            await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number,
+              body: `プレビュー: ${{ steps.deploy.outputs.url }}\n（コミット ${context.sha.slice(0, 7)}）` });
 
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: check
     runs-on: ubuntu-latest
-    environment: { name: production, url: "${{ vars.SITE_URL }}" }
+    environment: { name: production, url: "https://yusuke-omura.pages.dev" }
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with: { name: dist, path: dist }
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
-          channelId: live
+      - env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.142.0 pages deploy dist --project-name "$PROJECT" --branch main
       - name: 本番URLの確認
-        if: vars.SITE_URL != ''
         run: |
+          sleep 15
+          base="${{ vars.SITE_URL || 'https://yusuke-omura.pages.dev' }}"
           for p in / /profile /works /numbers /lab; do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "${{ vars.SITE_URL }}$p"); echo "$p $code"; test "$code" = 200
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$base$p"); echo "$p $code"; test "$code" = 200
           done

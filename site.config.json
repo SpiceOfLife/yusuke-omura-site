@@ -1,7 +1,8 @@
 {
-  "siteUrl": "https://yusuke-omura.web.app",
+  "siteUrl": "https://yusuke-omura.pages.dev",
   "siteName": "Yusuke Omura",
   "author": "大村優介 Yusuke Omura",
   "youtube": "https://www.youtube.com/@yusukemusic0726",
-  "label": "Shirokuma Records"
+  "label": "Shirokuma Records",
+  "pagesProject": "yusuke-omura"
 }

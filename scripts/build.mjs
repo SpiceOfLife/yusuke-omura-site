@@ -62,6 +62,7 @@ const footer = () => `<footer class="site-foot">
 rmSync("dist", { recursive: true, force: true });
 mkdirSync("dist", { recursive: true });
 cpSync("src/assets", "dist/assets", { recursive: true });
+cpSync("src/_headers", "dist/_headers");  // Cloudflare Pages のレスポンスヘッダー
 for (const f of readdirSync("src/pages").filter((f) => f.endsWith(".html"))) {
   let html = readFileSync(join("src/pages", f), "utf8");
   html = html.replace(/<!--#head(.*?)-->/s, (_, a) => head(attrs(a)))
