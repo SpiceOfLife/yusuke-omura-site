@@ -21,13 +21,14 @@ const PERSON = {
   birthDate: "1993",
   alumniOf: { "@type": "CollegeOrUniversity", name: "洗足学園音楽大学", alternateName: "Senzoku Gakuen College of Music" },
   memberOf: { "@type": "MusicGroup", name: "CARATORIUM" },
+  brand: { "@type": "Organization", name: conf.label, logo: `${SITE}/assets/img/icon-512.png` },
   award: ["SAPPORO CITY JAZZ 2023 ベストプレイヤー賞", "Japan Jazz Pop Competition 2023 クリエイター部門 銀賞"],
   knowsAbout: ["Jazz", "Piano", "Trumpet", "Composition", "Arrangement", "Mixing", "Mastering"],
   sameAs: [conf.youtube, "https://ours-blanc.app/"],
 };
 const PAGE_NAMES = { "/profile": "プロフィール", "/works": "作品", "/numbers": "数字で見る大村優介", "/lab": "Lab" };
 const ld = (path, title) => {
-  const graph = [PERSON, { "@type": "WebSite", "@id": `${SITE}/#website`, url: `${SITE}/`, name: "大村優介 Yusuke Omura 公式サイト", inLanguage: "ja", publisher: { "@id": `${SITE}/#person` } },
+  const graph = [PERSON, { "@type": "WebSite", "@id": `${SITE}/#website`, url: `${SITE}/`, name: conf.siteName, alternateName: ["Yusuke Omura 公式サイト", "大村優介 公式サイト", "Yusuke Omura"], inLanguage: "ja", publisher: { "@id": `${SITE}/#person` } },
     { "@type": path === "/" ? "ProfilePage" : "WebPage", url: `${SITE}${path}`, name: title, isPartOf: { "@id": `${SITE}/#website` }, about: { "@id": `${SITE}/#person` }, ...(path === "/" ? { mainEntity: { "@id": `${SITE}/#person` } } : {}) }];
   if (PAGE_NAMES[path]) graph.push({ "@type": "BreadcrumbList", itemListElement: [
     { "@type": "ListItem", position: 1, name: "ホーム", item: `${SITE}/` }, { "@type": "ListItem", position: 2, name: PAGE_NAMES[path], item: `${SITE}${path}` }] });
@@ -55,7 +56,10 @@ ${conf.googleSiteVerification ? `<meta name="google-site-verification" content="
 <meta property="og:image:alt" content="大村優介 Yusuke Omura">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0A1220">
-<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/assets/img/icon-192.png" type="image/png" sizes="192x192">
+<link rel="icon" href="/assets/img/icon-96.png" type="image/png" sizes="96x96">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,100..900&family=IBM+Plex+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
@@ -92,7 +96,8 @@ const footer = () => `<footer class="site-foot">
 rmSync("dist", { recursive: true, force: true });
 mkdirSync("dist", { recursive: true });
 cpSync("src/assets", "dist/assets", { recursive: true });
-cpSync("src/_headers", "dist/_headers");  // Cloudflare Pages のレスポンスヘッダー
+cpSync("src/_headers", "dist/_headers");
+cpSync("src/favicon.ico", "dist/favicon.ico");  // 検索結果のアイコン（Shirokuma Records のロゴ）  // Cloudflare Pages のレスポンスヘッダー
 for (const f of readdirSync("src/pages").filter((f) => f.endsWith(".html"))) {
   let html = readFileSync(join("src/pages", f), "utf8");
   html = html.replace(/<!--#head(.*?)-->/s, (_, a) => head(attrs(a)))
