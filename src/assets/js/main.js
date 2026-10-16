@@ -160,5 +160,9 @@
     target.addEventListener("reveal", () => window.countUp(el, parseFloat(el.dataset.count)), { once: true });
   });
 
+  /* header gets a solid backdrop once content scrolls under it */
+  const onHead = () => document.body.classList.toggle("scrolled", scrollY > 60);
+  addEventListener("scroll", onHead, { passive: true }); onHead();
+
   document.documentElement.classList.add("js");
 })();

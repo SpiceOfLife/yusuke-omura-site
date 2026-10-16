@@ -37,6 +37,8 @@ main { position: relative; z-index: 2; }
 /* ---------- header / nav ---------- */
 .site-head { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between;
   padding: calc(14px + env(safe-area-inset-top, 0px)) var(--gutter) 14px; mix-blend-mode: difference; }
+.site-head { transition: background .4s, backdrop-filter .4s, border-color .4s; border-bottom: 1px solid transparent; }
+body.scrolled .site-head { mix-blend-mode: normal; background: rgba(10, 18, 32, .78); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom-color: var(--line); }
 .logo { font-family: var(--display); font-variation-settings: "wdth" 110, "wght" 760; letter-spacing: .08em; text-decoration: none; font-size: 15px; color: #fff; }
 .logo span { display: inline-block; transition: transform .5s var(--ease-out); }
 .logo:hover span { transform: translateY(-3px); }
