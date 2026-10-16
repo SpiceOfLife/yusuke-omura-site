@@ -1,16 +1,25 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<!--#head title="Page not found | Yusuke Omura" description="お探しのページは見つかりませんでした。" path="/404" -->
+<!--#head title="ページが見つかりません｜大村優介 Yusuke Omura" description="このページは存在しません。" path="/404" -->
 <meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="5; url=/">
 </head>
 <body class="page-404">
 <!--#header current="" -->
 <main id="main" class="nf">
   <p class="nf-code" aria-label="404"><span style="--i:0">4</span><span style="--i:1">0</span><span style="--i:2">4</span></p>
-  <p class="lead">このページは、どこかで休符になってしまったようです。</p>
+  <p class="lead">このページは存在しません。<span data-countdown>5</span>秒でトップページにリダイレクトします</p>
   <p><a class="btn" href="/">Back to Home <span class="arrow">→</span></a></p>
 </main>
 <!--#footer -->
+<script>
+  // 5秒後にトップへ（JSが無効でも meta refresh で移動します）
+  (() => {
+    const el = document.querySelector("[data-countdown]");
+    let n = 5;
+    const t = setInterval(() => { n -= 1; if (el) el.textContent = Math.max(n, 0); if (n <= 0) { clearInterval(t); location.replace("/"); } }, 1000);
+  })();
+</script>
 </body>
 </html>
