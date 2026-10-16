@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
 
+# PR は新しい push で古い実行を止める。main は順番に1つずつ本番へ出す
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -57,7 +58,6 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: check
     runs-on: ubuntu-latest
-    environment: { name: production, url: "https://yusuke-omura.pages.dev" }
     steps:
       - uses: actions/download-artifact@v4
         with: { name: dist, path: dist }
