@@ -6,6 +6,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # ブログ同期（blog-sync.yml）が記事を更新したあとに呼び出す
+  workflow_call:
+    inputs:
+      ref: { type: string, required: false, default: "" }
 
 permissions:
   contents: read
@@ -23,9 +27,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with: { ref: "${{ inputs.ref }}" }
       - uses: actions/setup-node@v6
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - run: npm run test:sync
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npm run check

@@ -60,3 +60,29 @@ npm run deploy           # build → check → wrangler pages deploy
 
 ## 独自ドメインにするとき
 Cloudflare ダッシュボードの Workers & Pages → yusuke-omura → カスタムドメインで追加し、`site.config.json` の `siteUrl` と変数 `SITE_URL` を新しいURLに変えます（OGP・canonical・sitemap に反映されます）。
+
+## ブログ（Google Drive 連携）
+
+Google Drive の `blog` フォルダに **`YYYYMMDD_タイトル`** という名前の Google ドキュメントを置くと、記事になります。
+
+| Drive でしたこと | サイトで起きること |
+|---|---|
+| `20261101_ライブのお知らせ` を作る | `/blog/20261101-…` に記事ができる（一覧・サイトマップ・RSS にも追加） |
+| 本文を書き換える／名前のタイトル部分を変える | 記事が更新される（URL は変わらない） |
+| 日付部分を変える | その日付の記事として出し直される |
+| ドキュメントを削除する／別フォルダへ移す／名前の規則から外す | 記事が消える |
+| 未来の日付で作る | その日（日本時間）になったら公開される |
+
+- 見出し・太字・リスト・リンク・引用・表・画像が使えます。画像はWebP に縮小して掲載します。
+- 1記事目の最初の画像が一覧のサムネイルと SNS 共有時の画像になります。
+- 同期は `.github/workflows/blog-sync.yml` が **30分ごと** に実行します（Actions の「Run workflow」で今すぐ実行も可）。
+- 手元で試す: `BLOG_SOURCE_DIR=tests/fixtures/blog npm run sync:blog && npm run build`
+
+### 設定（GitHub の Settings → Secrets and variables → Actions）
+| 種類 | 名前 | 値 |
+|---|---|---|
+| Variable | `BLOG_FOLDER_ID` | Drive の blog フォルダの ID |
+| Variable | `GCP_WORKLOAD_IDENTITY_PROVIDER` / `GCP_SERVICE_ACCOUNT` | Workload Identity を使う場合（推奨・鍵なし） |
+| Secret | `GCP_SA_KEY` | サービスアカウント鍵を使う場合の JSON |
+
+サービスアカウントには Google Drive API を有効にしたプロジェクトで作成し、blog フォルダを **閲覧者** として共有します。

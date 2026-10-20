@@ -4,10 +4,12 @@
 //  - サイトURLは site.config.json の siteUrl（環境変数 SITE_URL で上書き可）
 import { readFileSync, writeFileSync, mkdirSync, cpSync, rmSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { existsSync } from "node:fs";
+import { marked } from "marked";
 
 const conf = JSON.parse(readFileSync("site.config.json", "utf8"));
 const SITE = (process.env.SITE_URL || conf.siteUrl).replace(/\/$/, "");
-const NAV = [["home", "/", "Home"], ["profile", "/profile", "Profile"], ["works", "/works", "Works"], ["numbers", "/numbers", "Numbers"], ["lab", "/lab", "Lab"]];
+const NAV = [["home", "/", "Home"], ["profile", "/profile", "Profile"], ["works", "/works", "Works"], ["numbers", "/numbers", "Numbers"], ["lab", "/lab", "Lab"], ["blog", "/blog/", "Blog"]];
 const attrs = (s) => Object.fromEntries([...s.matchAll(/(\w+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 
@@ -26,33 +28,33 @@ const PERSON = {
   knowsAbout: ["Jazz", "Piano", "Trumpet", "Composition", "Arrangement", "Mixing", "Mastering"],
   sameAs: [conf.youtube, "https://ours-blanc.app/"],
 };
-const PAGE_NAMES = { "/profile": "プロフィール", "/works": "作品", "/numbers": "数字で見る大村優介", "/lab": "Lab" };
-const ld = (path, title) => {
+const PAGE_NAMES = { "/profile": "プロフィール", "/works": "作品", "/numbers": "数字で見る大村優介", "/lab": "Lab", "/blog/": "ブログ" };
+const ld = (path, title, extra = []) => {
   const graph = [PERSON, { "@type": "WebSite", "@id": `${SITE}/#website`, url: `${SITE}/`, name: conf.siteName, alternateName: ["Yusuke Omura 公式サイト", "大村優介 公式サイト", "Yusuke Omura"], inLanguage: "ja", publisher: { "@id": `${SITE}/#person` } },
     { "@type": path === "/" ? "ProfilePage" : "WebPage", url: `${SITE}${path}`, name: title, isPartOf: { "@id": `${SITE}/#website` }, about: { "@id": `${SITE}/#person` }, ...(path === "/" ? { mainEntity: { "@id": `${SITE}/#person` } } : {}) }];
   if (PAGE_NAMES[path]) graph.push({ "@type": "BreadcrumbList", itemListElement: [
     { "@type": "ListItem", position: 1, name: "ホーム", item: `${SITE}/` }, { "@type": "ListItem", position: 2, name: PAGE_NAMES[path], item: `${SITE}${path}` }] });
   if (path === "/works") graph.push({ "@type": "MusicAlbum", name: "Faint traces of vague emotions, revealed through irregular waves", byArtist: { "@id": `${SITE}/#person` },
     datePublished: "2026-09-21", recordLabel: { "@type": "Organization", name: conf.label }, image: `${SITE}/assets/img/album-faint-traces.jpg` });
+  graph.push(...extra);
   return { "@context": "https://schema.org", "@graph": graph };
 };
 
-const head = ({ title, description, path = "/" }) => `<meta charset="utf-8">
+const head = ({ title, description, path = "/", image, ogType, extraLd = [] }) => `<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${SITE}${path}">
 <meta name="robots" content="index,follow,max-image-preview:large">
 ${conf.googleSiteVerification ? `<meta name="google-site-verification" content="${conf.googleSiteVerification}">\n` : ""}<meta name="author" content="大村優介 Yusuke Omura">
-<meta property="og:type" content="${path === "/" ? "profile" : "website"}">
+<meta property="og:type" content="${ogType || (path === "/" ? "profile" : "website")}">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:site_name" content="${esc(conf.siteName)}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${SITE}${path}">
-<meta property="og:image" content="${SITE}/assets/img/og.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<meta property="og:image" content="${SITE}${image || "/assets/img/og.jpg"}">
+${image ? "" : `<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n`}
 <meta property="og:image:alt" content="大村優介 Yusuke Omura">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0A1220">
@@ -64,7 +66,8 @@ ${conf.googleSiteVerification ? `<meta name="google-site-verification" content="
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,100..900&family=IBM+Plex+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="/assets/css/style.css">
-<script type="application/ld+json">${JSON.stringify(ld(path, title))}</script>`;
+<link rel="alternate" type="application/rss+xml" title="${esc(conf.siteName)} Blog" href="/blog/feed.xml">
+<script type="application/ld+json">${JSON.stringify(ld(path, title, extraLd)).replace(/</g, "\\u003c")}</script>`;
 
 const header = ({ current }) => `<a class="sr-only" href="#main">本文へ移動</a>
 <div class="progress" aria-hidden="true"></div>
@@ -106,8 +109,83 @@ for (const f of readdirSync("src/pages").filter((f) => f.endsWith(".html"))) {
              .replaceAll("__SITE_URL__", SITE);
   writeFileSync(join("dist", f), html);
 }
+
+/* ---------- blog (content/blog は scripts/sync-blog.mjs が Google Drive から作る) ---------- */
+const posts = existsSync("content/blog/posts.json") ? JSON.parse(readFileSync("content/blog/posts.json", "utf8")) : [];
+if (existsSync("content/blog/img")) cpSync("content/blog/img", "dist/assets/blog", { recursive: true });
+mkdirSync("dist/blog", { recursive: true });
+const jpDate = (d) => { const [y, m, dd] = d.split("-"); return `${y}.${m}.${dd}`; };
+marked.use({ gfm: true, breaks: false });
+const render = (md) => marked.parse(md)
+  .replace(/<img /g, '<img loading="lazy" decoding="async" ')
+  .replace(/<a href="(https?:)/g, '<a target="_blank" rel="noopener" href="$1')
+  .replace(/<table>/g, '<div class="table-wrap"><table>').replace(/<\/table>/g, "</table></div>");
+const page = (opts, current, body, script = "") => `<!doctype html>
+<html lang="ja">
+<head>
+${head(opts)}
+</head>
+<body class="${opts.bodyClass}">
+${header({ current })}
+<main id="main">
+${body}
+</main>
+${footer()}${script}
+</body>
+</html>
+`;
+const card = (p, i) => `<li class="post-card reveal" style="--i:${i}">
+      <a href="/blog/${p.slug}" data-tilt>
+        <span class="pc-thumb">${p.image ? `<img src="${p.image}" alt="" loading="lazy" decoding="async">` : `<span class="pc-noimg" aria-hidden="true">${esc(p.title.slice(0, 1))}</span>`}<span class="glare" aria-hidden="true"></span></span>
+        <time class="pc-date" datetime="${p.date}">${jpDate(p.date)}</time>
+        <span class="pc-title">${esc(p.title)}</span>
+        <span class="pc-desc">${esc(p.description)}</span>
+      </a>
+    </li>`;
+writeFileSync("dist/blog/index.html", page({ title: "ブログ｜大村優介 Yusuke Omura", description: "大村優介（Yusuke Omura）のブログ。演奏、制作、日々のこと。", path: "/blog/", bodyClass: "page-blog" }, "blog", `
+  <header class="page-hero wrap">
+    <p class="eyebrow">Journal</p>
+    <h1 class="h2 page-title" data-stretch>Blog</h1>
+    <p class="lead reveal">演奏や制作のこと、日々のこと。</p>
+  </header>
+  <section class="wrap blog-list" aria-label="記事一覧">
+    ${posts.length ? `<ol class="post-grid">${posts.map(card).join("\n    ")}</ol>` : `<p class="muted reveal">まだ記事はありません。</p>`}
+  </section>`));
+posts.forEach((p, i) => {
+  const md = readFileSync(`content/blog/${p.slug}.md`, "utf8");
+  const newer = posts[i - 1], older = posts[i + 1];
+  const url = `${SITE}/blog/${p.slug}`;
+  const article = { "@type": "BlogPosting", headline: p.title, datePublished: p.date, dateModified: p.modifiedTime || p.date, url, mainEntityOfPage: url,
+    author: { "@id": `${SITE}/#person` }, publisher: { "@id": `${SITE}/#person` }, ...(p.image ? { image: `${SITE}${p.image}` } : {}), description: p.description };
+  const crumbs = { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "ホーム", item: `${SITE}/` },
+    { "@type": "ListItem", position: 2, name: "ブログ", item: `${SITE}/blog/` }, { "@type": "ListItem", position: 3, name: p.title, item: url }] };
+  writeFileSync(`dist/blog/${p.slug}.html`, page({ title: `${p.title}｜大村優介 Yusuke Omura`, description: p.description || p.title, path: `/blog/${p.slug}`,
+    image: p.image, ogType: "article", extraLd: [article, crumbs], bodyClass: "page-post" }, "blog", `
+  <article class="post">
+    <header class="post-head wrap">
+      <a class="back reveal" href="/blog/">← Blog</a>
+      <time class="post-date eyebrow" datetime="${p.date}">${jpDate(p.date)}</time>
+      <h1 class="post-title split rise">${esc(p.title)}</h1>
+    </header>
+    <div class="prose wrap reveal">
+${render(md)}
+    </div>
+    <nav class="post-nav wrap" aria-label="前後の記事">
+      ${newer ? `<a class="pn newer" href="/blog/${newer.slug}"><span class="pn-l">Newer →</span><span class="pn-t">${esc(newer.title)}</span></a>` : "<span></span>"}
+      ${older ? `<a class="pn older" href="/blog/${older.slug}"><span class="pn-l">← Older</span><span class="pn-t">${esc(older.title)}</span></a>` : "<span></span>"}
+    </nav>
+  </article>`, '\n<script src="/assets/js/post.js" defer></script>'));
+});
+const xml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+writeFileSync("dist/blog/feed.xml", `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+<title>${xml(conf.siteName)} Blog</title><link>${SITE}/blog/</link><description>大村優介のブログ</description><language>ja</language>
+${posts.slice(0, 30).map((p) => `<item><title>${xml(p.title)}</title><link>${SITE}/blog/${p.slug}</link><guid>${SITE}/blog/${p.slug}</guid><pubDate>${new Date(p.date + "T09:00:00+09:00").toUTCString()}</pubDate><description>${xml(p.description)}</description></item>`).join("\n")}
+</channel></rss>
+`);
 const urls = readdirSync("src/pages").filter((f) => f.endsWith(".html") && f !== "404.html")
-  .map((f) => `  <url><loc>${SITE}/${f === "index.html" ? "" : f.replace(".html", "")}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>`).join("\n");
+  .map((f) => `  <url><loc>${SITE}/${f === "index.html" ? "" : f.replace(".html", "")}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>`).join("\n") + `\n  <url><loc>${SITE}/blog/</loc><lastmod>${posts[0]?.date || new Date().toISOString().slice(0, 10)}</lastmod></url>`
+  + posts.map((p) => `\n  <url><loc>${SITE}/blog/${p.slug}</loc><lastmod>${(p.modifiedTime || p.date).slice(0, 10)}</lastmod></url>`).join("");
 writeFileSync("dist/sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
 writeFileSync("dist/robots.txt", `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
-console.log(`built dist/ for ${SITE}`);
+console.log(`built dist/ for ${SITE}（ブログ ${posts.length} 件）`);

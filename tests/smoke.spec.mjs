@@ -50,3 +50,18 @@ test("検索エンジン向けの情報がそろっている", async ({ page }) 
   const ld = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
   expect(ld["@graph"].find((n) => n["@type"] === "Person").name).toBe("大村優介");
 });
+
+test("ブログ一覧が表示され、記事があれば記事ページも開ける", async ({ page }) => {
+  const res = await page.goto("/blog/");
+  expect(res.status()).toBe(200);
+  await expect(page.locator("h1")).toHaveText(/Blog/i);
+  const first = page.locator(".post-card a").first();
+  if (await first.count()) {
+    const href = await first.getAttribute("href");
+    const r = await page.goto(href);
+    expect(r.status()).toBe(200);
+    await expect(page.locator(".post-title")).toBeVisible();
+    const ld = await page.locator('script[type="application/ld+json"]').textContent();
+    expect(ld).toContain("BlogPosting");
+  }
+});

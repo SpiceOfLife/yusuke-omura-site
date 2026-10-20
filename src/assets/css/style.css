@@ -406,3 +406,57 @@ p { margin: 0 0 1em; }
   .ring-seg { transition: none !important; stroke-dashoffset: 0 !important; }
   .g-bar::after { opacity: 1; } .bars-anim i, .nf-code span, .stat.in .num { animation: none !important; }
 }
+
+/* ================= BLOG ================= */
+.post-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 28px 22px; }
+.post-card { transition-delay: calc(var(--i, 0) * 80ms); }
+.post-card a { display: grid; gap: 10px; text-decoration: none; }
+.pc-thumb { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 6px; background: var(--ink-2); border: 1px solid var(--line); }
+.pc-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 1s var(--ease-out), filter .6s; filter: saturate(.85); }
+.post-card a:hover .pc-thumb img { transform: scale(1.07); filter: none; }
+.pc-noimg { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: 120px; font-variation-settings: "wdth" 60, "wght" 860; color: rgba(191, 212, 230, .16);
+  background: radial-gradient(circle at 30% 20%, rgba(62,110,156,.35), transparent 60%); transition: font-variation-settings .8s var(--ease-out), color .4s; }
+.post-card a:hover .pc-noimg { font-variation-settings: "wdth" 140, "wght" 300; color: var(--wave); }
+.pc-thumb .glare { position: absolute; inset: 0; background: radial-gradient(500px circle at var(--gx, 50%) var(--gy, 0%), rgba(255,255,255,.16), transparent 50%); opacity: 0; transition: opacity .3s; pointer-events: none; }
+.post-card a:hover .glare { opacity: 1; }
+.pc-date { font: 12px var(--mono); letter-spacing: .14em; color: var(--brass); }
+.pc-title { font-family: var(--display), var(--body); font-size: clamp(22px, 2.2vw, 28px); line-height: 1.25; font-variation-settings: "wdth" 85, "wght" 640; transition: font-variation-settings .5s var(--ease-out), color .3s; }
+.post-card a:hover .pc-title { font-variation-settings: "wdth" 110, "wght" 520; color: var(--brass); }
+.pc-desc { color: var(--muted); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.blog-list { padding-bottom: clamp(80px, 12vw, 160px); }
+
+.post-head { padding-top: clamp(130px, 18vw, 220px); display: grid; gap: 10px; max-width: 980px; margin-inline: auto; }
+.back { font: 12px var(--mono); letter-spacing: .14em; color: var(--muted); text-decoration: none; justify-self: start; margin-bottom: 18px; transition: color .2s, transform .3s var(--ease-out); }
+.back:hover { color: var(--brass); transform: translateX(-4px); }
+.post-title { font-family: var(--display), var(--body); font-size: clamp(34px, 6vw, 76px); line-height: 1.1; margin: 0; font-variation-settings: "wdth" 80, "wght" 760; text-wrap: balance; }
+.prose { max-width: 760px; margin: clamp(40px, 6vw, 72px) auto 0; font-size: 17px; line-height: 2; color: var(--paper); overflow-wrap: anywhere; }
+.prose > * { margin: 0 0 1.4em; }
+.prose h1, .prose h2, .prose h3 { font-family: var(--display), var(--body); line-height: 1.3; margin: 2em 0 .7em; font-variation-settings: "wdth" 90, "wght" 700; }
+.prose h1 { font-size: 1.8em; } .prose h2 { font-size: 1.5em; } .prose h3 { font-size: 1.2em; }
+.prose h1::before, .prose h2::before { content: ""; display: block; width: 34px; height: 2px; background: var(--brass); margin-bottom: 14px; }
+.prose a { color: var(--brass); text-underline-offset: 3px; }
+.prose img { display: block; max-width: 100%; height: auto; margin: 2em auto; border-radius: 6px; cursor: zoom-in; box-shadow: 0 30px 60px -30px rgba(0,0,0,.6); }
+.prose blockquote { border-left: 2px solid var(--brass); margin-left: 0; padding: 4px 0 4px 22px; color: var(--foam); }
+.prose code { font-family: var(--mono); font-size: .9em; background: var(--ink-2); padding: 2px 6px; border-radius: 4px; }
+.prose pre { background: var(--ink-2); border: 1px solid var(--line); padding: 18px; border-radius: 8px; overflow-x: auto; }
+.prose pre code { background: none; padding: 0; }
+.prose hr { border: 0; height: 1px; background: var(--line); margin: 3em 0; }
+.prose ul, .prose ol { padding-left: 1.4em; }
+.table-wrap { overflow-x: auto; }
+.prose table { border-collapse: collapse; width: 100%; font-size: .92em; }
+.prose th, .prose td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: left; }
+.prose .pb { opacity: 0; transform: translateY(24px); transition: opacity .9s var(--ease-out), transform 1s var(--ease-out); }
+.prose .pb.on { opacity: 1; transform: none; }
+.post-nav { max-width: 760px; margin: clamp(60px, 9vw, 110px) auto clamp(80px, 12vw, 150px); display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.pn { display: grid; gap: 6px; padding: 20px; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; transition: border-color .3s, transform .4s var(--ease-out); }
+.pn:hover { border-color: var(--brass); transform: translateY(-3px); }
+.pn.older { text-align: right; grid-column: 2; } .pn.newer { grid-column: 1; grid-row: 1; }
+.pn-l { font: 11px var(--mono); letter-spacing: .14em; color: var(--brass); }
+.pn-t { font-weight: 700; }
+@media (max-width: 600px) { .post-nav { grid-template-columns: 1fr; } .pn.older, .pn.newer { grid-column: 1; grid-row: auto; text-align: left; } }
+.lightbox { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 24px; background: rgba(5, 10, 18, .92); opacity: 0; transition: opacity .25s; cursor: zoom-out; }
+.lightbox.open { opacity: 1; }
+.lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; transform: scale(.94); transition: transform .35s var(--ease-out); }
+.lightbox.open img { transform: none; }
+.lb-close { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 16px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--ink-2); color: var(--paper); font-size: 22px; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .prose .pb { opacity: 1; transform: none; transition: none; } .lightbox, .lightbox img { transition: none; } }

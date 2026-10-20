@@ -8,10 +8,15 @@
     "check": "node scripts/check.mjs",
     "serve": "node scripts/serve.mjs",
     "test": "playwright test",
-    "deploy": "npm run build && npm run check && wrangler pages deploy dist --project-name yusuke-omura --branch main"
+    "deploy": "npm run build && npm run check && wrangler pages deploy dist --project-name yusuke-omura --branch main",
+    "sync:blog": "node scripts/sync-blog.mjs",
+    "test:sync": "node --test tests/sync-blog.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
-    "wrangler": "4.142.0"
-  }
+    "wrangler": "4.142.0",
+    "marked": "15.0.12",
+    "sharp": "0.35.4"
+  },
+  "dependencies": {}
 }

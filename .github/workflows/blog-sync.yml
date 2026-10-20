@@ -1,0 +1,60 @@
+# Google Drive の blog フォルダ（YYYYMMDD_タイトル の Google ドキュメント）を読み、
+# 記事の作成・更新・削除があれば main にコミットして、CI（検査 → 本番公開）を実行する。
+#   - 30分ごとに自動実行（予約投稿もこのタイミングで公開される）
+#   - Actions 画面の「Run workflow」から手動でも実行できる
+name: Blog sync
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: blog-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    # BLOG_FOLDER_ID（とGoogleの認証）を設定するまでは何もしない
+    if: vars.BLOG_FOLDER_ID != ''
+    runs-on: ubuntu-latest
+    permissions: { contents: write, id-token: write }
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v6
+        with: { ref: main }
+      - uses: actions/setup-node@v6
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      # Google への認証。Workload Identity（鍵なし）を推奨。設定がなければサービスアカウント鍵を使う
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/drive.readonly
+      - name: Drive から同期
+        env:
+          GOOGLE_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          BLOG_FOLDER_ID: ${{ vars.BLOG_FOLDER_ID }}
+        run: npm run sync:blog
+      - id: commit
+        name: 変更があればコミット
+        run: |
+          git add -A content/blog
+          if git diff --cached --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; echo "変更なし"; exit 0; fi
+          git config user.name "blog-sync[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "blog: Google Drive から同期 ($(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M'))"
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: sync
+    if: needs.sync.outputs.changed == 'true'
+    uses: ./.github/workflows/ci.yml
+    with: { ref: main }
+    secrets: inherit
+    permissions: { contents: read, pull-requests: write }
