@@ -74,7 +74,7 @@ Google Drive の `blog` フォルダに **`YYYYMMDD_タイトル`** という名
 | 未来の日付で作る | その日（日本時間）になったら公開される |
 
 - 見出し・太字・リスト・リンク・引用・表・画像が使えます。画像はWebP に縮小して掲載します。
-- 1記事目の最初の画像が一覧のサムネイルと SNS 共有時の画像になります。
+- 一覧ページは日付とタイトルだけを表示します。記事の最初の画像は SNS 共有時の画像になります。
 - 同期は `.github/workflows/blog-sync.yml` が **30分ごと** に実行します（Actions の「Run workflow」で今すぐ実行も可）。
 - 手元で試す: `BLOG_SOURCE_DIR=tests/fixtures/blog npm run sync:blog && npm run build`
 

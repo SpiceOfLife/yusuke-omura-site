@@ -135,11 +135,10 @@ ${footer()}${script}
 </html>
 `;
 const card = (p, i) => `<li class="post-card reveal" style="--i:${i}">
-      <a href="/blog/${p.slug}" data-tilt>
-        <span class="pc-thumb">${p.image ? `<img src="${p.image}" alt="" loading="lazy" decoding="async">` : `<span class="pc-noimg" aria-hidden="true">${esc(p.title.slice(0, 1))}</span>`}<span class="glare" aria-hidden="true"></span></span>
+      <a href="/blog/${p.slug}">
         <time class="pc-date" datetime="${p.date}">${jpDate(p.date)}</time>
         <span class="pc-title">${esc(p.title)}</span>
-        <span class="pc-desc">${esc(p.description)}</span>
+        <span class="pc-arrow" aria-hidden="true">→</span>
       </a>
     </li>`;
 writeFileSync("dist/blog/index.html", page({ title: "ブログ｜大村優介 Yusuke Omura", description: "大村優介（Yusuke Omura）のブログ。演奏、制作、日々のこと。", path: "/blog/", bodyClass: "page-blog" }, "blog", `
