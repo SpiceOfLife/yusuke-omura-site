@@ -1,9 +1,10 @@
 // ビルド後の dist/ を検査: 内部リンクと画像の参照切れ、未展開のインクルード、title/description の有無。
-import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 let errors = 0;
 const fail = (m) => { console.error("✗ " + m); errors++; };
-const pages = readdirSync("dist").filter((f) => f.endsWith(".html"));
+const walk = (d) => readdirSync(join("dist", d)).flatMap((n) => { const r = d ? `${d}/${n}` : n; return statSync(join("dist", r)).isDirectory() ? (r.startsWith("assets") ? [] : walk(r)) : [r]; });
+const pages = walk("").filter((f) => f.endsWith(".html"));
 for (const f of pages) {
   const html = readFileSync(join("dist", f), "utf8");
   if (/<!--#/.test(html)) fail(`${f}: 未展開のインクルード`);

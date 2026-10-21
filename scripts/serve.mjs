@@ -4,13 +4,13 @@ import { readFile, stat } from "node:fs/promises";
 import { join, extname, normalize } from "node:path";
 
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png",
-  ".jpg": "image/jpeg", ".webp": "image/webp", ".json": "application/json", ".txt": "text/plain", ".xml": "application/xml" };
+  ".jpg": "image/jpeg", ".webp": "image/webp", ".json": "application/json", ".txt": "text/plain", ".xml": "application/xml", ".ico": "image/x-icon" };
 const port = Number(process.env.PORT || 4173);
 const exists = async (f) => (await stat(f).catch(() => null))?.isFile();
 
 createServer(async (req, res) => {
   const p = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)).replace(/^(\.\.[/\\])+/, "");
-  const candidates = p.endsWith("/") ? [join("dist", p, "index.html")] : [join("dist", p), join("dist", p + ".html")];
+  const candidates = p.endsWith("/") ? [join("dist", p, "index.html")] : [join("dist", p), join("dist", p + ".html"), join("dist", p, "index.html")];
   for (const f of candidates) if (await exists(f)) {
     res.writeHead(200, { "content-type": TYPES[extname(f)] || "application/octet-stream" });
     return res.end(await readFile(f));
