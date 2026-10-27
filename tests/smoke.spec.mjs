@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const PAGES = [["/", /Yusuke Omura/], ["/profile", /プロフィール/], ["/works", /作品/], ["/numbers", /数字で見る/], ["/lab", /Lab/]];
+const PAGES = [["/", /Yusuke Omura/], ["/profile", /プロフィール/], ["/works", /作品/], ["/numbers", /数字で見る/], ["/lab", /Lab/], ["/live", /ライブ/]];
 
 for (const [path, title] of PAGES) {
   test(`${path} が表示され、エラーがなく、横スクロールしない`, async ({ page }) => {

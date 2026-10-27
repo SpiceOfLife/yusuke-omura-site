@@ -457,3 +457,14 @@ p { margin: 0 0 1em; }
 .lightbox.open img { transform: none; }
 .lb-close { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 16px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--ink-2); color: var(--paper); font-size: 22px; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .prose .pb { opacity: 1; transform: none; transition: none; } .lightbox, .lightbox img { transition: none; } }
+
+/* ---------- live ---------- */
+.live-list { list-style: none; margin: 0 0 40px; padding: 0; border-top: 1px solid var(--line); }
+.live-card { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 12px 32px; padding: 28px 0; border-bottom: 1px solid var(--line); }
+.lc-date { font-family: var(--mono); font-size: 15px; letter-spacing: .08em; color: var(--brass); }
+.lc-title { margin: 0 0 8px; font-size: clamp(20px, 2.6vw, 28px); line-height: 1.3; }
+.lc-venue, .lc-who, .lc-meta { margin: 0 0 6px; }
+.lc-meta { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.lc-link { display: inline-block; margin-top: 10px; color: var(--brass); border-bottom: 1px solid currentColor; }
+.live-list.past .lc-date, .live-list.past .lc-title { opacity: .6; }
+@media (max-width: 640px) { .live-card { grid-template-columns: 1fr; } }
