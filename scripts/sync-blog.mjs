@@ -58,7 +58,10 @@ const plain = (md) => md
   .replace(/^\[[^\]]+\]:\s*<?\S+>?\s*$/gm, "")      // 参照リンクの定義
   .replace(/!\[[^\]]*\]\[[^\]]*\]|!\[[^\]]*\]\([^)]*\)/g, "") // 画像
   .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-  .replace(/[#>*_`~|\\-]+/g, " ").replace(/\s+/g, " ").trim();
+  .replace(/\\(.)/g, "$1")                              // Markdown のエスケープ（https\:// など）
+  .replace(/https?:\/\/\S+/g, "")                        // 説明文に URL は入れない
+  .replace(/^\s*(?:[-*+]|\d+\.)\s+/gm, " ")                 // リストの記号
+  .replace(/[#>*_`~|]+|-{2,}/g, " ").replace(/\s+/g, " ").trim();
 
 let sharp = null;
 try { sharp = (await import("sharp")).default; } catch { /* 画像の縮小は省略 */ }

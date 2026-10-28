@@ -9,7 +9,7 @@ import { marked } from "marked";
 
 const conf = JSON.parse(readFileSync("site.config.json", "utf8"));
 const SITE = (process.env.SITE_URL || conf.siteUrl).replace(/\/$/, "");
-const NAV = [["home", "/", "Home"], ["profile", "/profile", "Profile"], ["works", "/works", "Works"], ["numbers", "/numbers", "Numbers"], ["lab", "/lab", "Lab"], ["blog", "/blog/", "Blog"]];
+const NAV = [["home", "/", "Home"], ["profile", "/profile", "Profile"], ["works", "/works", "Works"], ["numbers", "/numbers", "Numbers"], ["live", "/live", "Live"], ["lab", "/lab", "Lab"], ["blog", "/blog/", "Blog"]];
 const attrs = (s) => Object.fromEntries([...s.matchAll(/(\w+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 
@@ -26,9 +26,9 @@ const PERSON = {
   brand: { "@type": "Organization", name: conf.label, logo: `${SITE}/assets/img/icon-512.png` },
   award: ["SAPPORO CITY JAZZ 2023 ベストプレイヤー賞", "Japan Jazz Pop Competition 2023 クリエイター部門 銀賞"],
   knowsAbout: ["Jazz", "Piano", "Trumpet", "Composition", "Arrangement", "Mixing", "Mastering"],
-  sameAs: [conf.youtube, "https://ours-blanc.app/"],
+  sameAs: [conf.youtube, conf.instagram, conf.facebook, conf.apps].filter(Boolean),
 };
-const PAGE_NAMES = { "/profile": "プロフィール", "/works": "作品", "/numbers": "数字で見る大村優介", "/lab": "Lab", "/blog/": "ブログ" };
+const PAGE_NAMES = { "/profile": "プロフィール", "/works": "作品", "/numbers": "数字で見る大村優介", "/lab": "Lab", "/live": "ライブ", "/blog/": "ブログ" };
 const ld = (path, title, extra = []) => {
   const graph = [PERSON, { "@type": "WebSite", "@id": `${SITE}/#website`, url: `${SITE}/`, name: conf.siteName, alternateName: ["Yusuke Omura 公式サイト", "大村優介 公式サイト", "Yusuke Omura"], inLanguage: "ja", publisher: { "@id": `${SITE}/#person` } },
     { "@type": path === "/" ? "ProfilePage" : "WebPage", url: `${SITE}${path}`, name: title, isPartOf: { "@id": `${SITE}/#website` }, about: { "@id": `${SITE}/#person` }, ...(path === "/" ? { mainEntity: { "@id": `${SITE}/#person` } } : {}) }];
@@ -89,12 +89,42 @@ const footer = () => `<footer class="site-foot">
     <span>© ${new Date().getFullYear()} Yusuke Omura / ${conf.label}</span>
     <div class="foot-links">
       <a href="${conf.youtube}" target="_blank" rel="noopener">YouTube</a>
-      <a href="https://ours-blanc.app/" target="_blank" rel="noopener">ours-blanc</a>
+      <a href="${conf.instagram}" target="_blank" rel="noopener">Instagram</a>
+      <a href="${conf.apps}" target="_blank" rel="noopener">ours-blanc</a>
       <a href="#main">Page top ↑</a>
     </div>
   </div>
 </footer>
 <script src="/assets/js/main.js" defer></script>`;
+
+
+/* ---------- live（content/live.json）: 予定は MusicEvent の構造化データ付きで出す ---------- */
+const todayJst = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+const lives = (existsSync("content/live.json") ? JSON.parse(readFileSync("content/live.json", "utf8")) : []).sort((a, b) => a.date.localeCompare(b.date));
+const upcoming = lives.filter((l) => l.date >= todayJst), past = lives.filter((l) => l.date < todayJst).reverse();
+const dow = (d) => "日月火水木金土"[new Date(d + "T00:00:00+09:00").getUTCDay()];
+const liveDate = (l) => `${l.date.replaceAll("-", ".")} (${dow(l.date)})`;
+const eventLd = (l) => ({ "@type": "MusicEvent", name: `${l.title}｜大村優介`, startDate: `${l.date}T${l.start || "19:00"}:00+09:00`, ...(l.open ? { doorTime: `${l.date}T${l.open}:00+09:00` } : {}),
+  eventStatus: "https://schema.org/EventScheduled", eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+  location: { "@type": "Place", name: l.venue, address: { "@type": "PostalAddress", streetAddress: l.address, addressLocality: l.locality, addressRegion: l.region, addressCountry: "JP" } },
+  performer: [{ "@id": `${SITE}/#person` }, ...(l.performers || []).filter((p) => !p.startsWith("大村優介")).map((p) => ({ "@type": "Person", name: p.replace(/\s*\(.*\)$/, "") }))],
+  organizer: { "@id": `${SITE}/#person` }, image: `${SITE}/assets/img/og.jpg`, description: `${l.venue}にて。出演: ${(l.performers || []).join("、")}。${l.priceNote || ""}`,
+  ...(l.price ? { offers: { "@type": "Offer", price: String(l.price), priceCurrency: "JPY", availability: "https://schema.org/InStock", url: l.url || `${SITE}/live`, validFrom: `${new Date().toISOString().slice(0, 10)}` } } : {}) });
+const liveCard = (l, i) => `<li class="live-card reveal" style="--i:${i}">
+      <time class="lc-date" datetime="${l.date}">${liveDate(l)}</time>
+      <div class="lc-body">
+        <h3 class="lc-title">${esc(l.title)}</h3>
+        <p class="lc-venue">${esc(l.venue)}<span class="muted">　${esc(l.address || "")}</span></p>
+        ${l.performers?.length ? `<p class="lc-who">${l.performers.map(esc).join(" / ")}</p>` : ""}
+        <p class="lc-meta mono">${l.open ? `OPEN ${l.open} / ` : ""}START ${l.start || ""}${l.priceNote ? ` ・ ${esc(l.priceNote)}` : ""}</p>
+        ${l.url ? `<a class="lc-link" href="${l.url}" target="_blank" rel="noopener">詳細・ご予約 ↗</a>` : ""}
+      </div>
+    </li>`;
+const nextLive = upcoming[0] ? `<section class="section wrap next-live" aria-labelledby="next-live-h">
+    <p class="eyebrow" id="next-live-h">Next Live</p>
+    <ol class="live-list">${liveCard(upcoming[0], 0)}</ol>
+    <a class="btn reveal" href="/live">Schedule <span class="arrow">→</span></a>
+  </section>` : "";
 
 rmSync("dist", { recursive: true, force: true });
 mkdirSync("dist", { recursive: true });
@@ -106,6 +136,7 @@ for (const f of readdirSync("src/pages").filter((f) => f.endsWith(".html"))) {
   html = html.replace(/<!--#head(.*?)-->/s, (_, a) => head(attrs(a)))
              .replace(/<!--#header(.*?)-->/s, (_, a) => header(attrs(a)))
              .replace(/<!--#footer\s*-->/, footer())
+             .replace(/<!--#nextlive\s*-->/, nextLive)
              .replaceAll("__SITE_URL__", SITE);
   writeFileSync(join("dist", f), html);
 }
@@ -150,6 +181,18 @@ writeFileSync("dist/blog/index.html", page({ title: "ブログ｜大村優介 Yu
   <section class="wrap blog-list" aria-label="記事一覧">
     ${posts.length ? `<ol class="post-grid">${posts.map(card).join("\n    ")}</ol>` : `<p class="muted reveal">まだ記事はありません。</p>`}
   </section>`));
+writeFileSync("dist/live.html", page({ title: "ライブ・出演情報｜大村優介 Yusuke Omura", description: `ジャズピアニスト大村優介（Yusuke Omura）のライブスケジュール。${upcoming[0] ? `次回は${liveDate(upcoming[0])} ${upcoming[0].venue}「${upcoming[0].title}」。` : ""}出演情報・会場・料金・ご予約。`,
+  path: "/live", bodyClass: "page-live", extraLd: upcoming.map(eventLd) }, "live", `
+  <header class="page-hero wrap">
+    <p class="eyebrow">Schedule</p>
+    <h1 class="h2 page-title" data-stretch>Live</h1>
+    <p class="lead reveal">ライブ・出演情報。ご予約やお問い合わせは各公演のリンク、または <a href="${conf.instagram}" target="_blank" rel="noopener">Instagram</a> の DM からどうぞ。</p>
+  </header>
+  <section class="wrap" aria-labelledby="upcoming-h">
+    <h2 id="upcoming-h" class="eyebrow">Upcoming</h2>
+    ${upcoming.length ? `<ol class="live-list">${upcoming.map(liveCard).join("\n    ")}</ol>` : `<p class="muted reveal">現在決まっている公演はありません。最新情報は Instagram でお知らせします。</p>`}
+  </section>
+  ${past.length ? `<section class="section wrap" aria-labelledby="past-h"><h2 id="past-h" class="eyebrow">Past</h2><ol class="live-list past">${past.slice(0, 20).map(liveCard).join("\n    ")}</ol></section>` : ""}`));
 posts.forEach((p, i) => {
   const md = readFileSync(`content/blog/${p.slug}.md`, "utf8");
   const newer = posts[i - 1], older = posts[i + 1];
@@ -183,7 +226,7 @@ ${posts.slice(0, 30).map((p) => `<item><title>${xml(p.title)}</title><link>${SIT
 </channel></rss>
 `);
 const urls = readdirSync("src/pages").filter((f) => f.endsWith(".html") && f !== "404.html")
-  .map((f) => `  <url><loc>${SITE}/${f === "index.html" ? "" : f.replace(".html", "")}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>`).join("\n") + `\n  <url><loc>${SITE}/blog/</loc><lastmod>${posts[0]?.date || new Date().toISOString().slice(0, 10)}</lastmod></url>`
+  .map((f) => `  <url><loc>${SITE}/${f === "index.html" ? "" : f.replace(".html", "")}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>`).join("\n") + `\n  <url><loc>${SITE}/live</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>\n  <url><loc>${SITE}/blog/</loc><lastmod>${posts[0]?.date || new Date().toISOString().slice(0, 10)}</lastmod></url>`
   + posts.map((p) => `\n  <url><loc>${SITE}/blog/${p.slug}</loc><lastmod>${(p.modifiedTime || p.date).slice(0, 10)}</lastmod></url>`).join("");
 writeFileSync("dist/sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
 writeFileSync("dist/robots.txt", `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
