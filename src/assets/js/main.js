@@ -13,16 +13,24 @@
     el.setAttribute("aria-label", text.trim());
     el.textContent = "";
     let i = 0;
+    // 英単語はまとめて折り返さず、日本語（かな・漢字・全角記号）は 1 文字ずつ折り返せるようにする。
+    // スペースのない日本語のタイトルが 1 つの「単語」になって画面からはみ出すのを防ぐ
+    const CJK = /[\u3000-\u30ff\u3400-\u9fff\uf900-\ufaff\uff00-\uffef]/;
     text.split(/(\s+)/).forEach((word) => {
       if (/^\s+$/.test(word)) { el.append(document.createTextNode(" ")); return; }
-      const w = document.createElement("span");
-      w.className = "w"; w.setAttribute("aria-hidden", "true");
-      for (const c of word) {
-        const s = document.createElement("span");
-        s.className = "ch"; s.textContent = c; s.style.setProperty("--i", i++);
-        w.append(s);
-      }
-      el.append(w);
+      // 句読点・閉じかっこ・小書きのかな・長音は前の文字にくっつけて、行頭に来ないようにする
+      const parts = word.match(/[\u3000-\u30ff\u3400-\u9fff\uf900-\ufaff\uff00-\uffef][、。，．・：；！？」』）】〕ーぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ々]*|[^\u3000-\u30ff\u3400-\u9fff\uf900-\ufaff\uff00-\uffef]+/g) || [word];
+      parts.forEach((part) => {
+        const w = document.createElement("span");
+        w.className = "w"; w.setAttribute("aria-hidden", "true");
+        for (const c of part) {
+          const s = document.createElement("span");
+          s.className = "ch"; s.textContent = c; s.style.setProperty("--i", i++);
+          w.append(s);
+        }
+        el.append(w);
+        if (CJK.test(part)) el.append(document.createElement("wbr"));
+      });
     });
     el.dataset.splitDone = "1";
   }

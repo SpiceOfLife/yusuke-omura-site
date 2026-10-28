@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, cpSync, readFileSync, existsSync, appendFileSync, rmSync, utimesSync, readdirSync } from "node:fs";
+import { mkdtempSync, cpSync, readFileSync, existsSync, appendFileSync, rmSync, utimesSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -40,4 +40,24 @@ test("作成・更新・削除・予約・対象外", () => {
   assert.match(run(src, out), /削除: Hello World/);
   assert.equal(posts(out).length, 1);
   assert.ok(!existsSync(join(out, "20261021-hello-world.md")) && !existsSync(join(out, "img", "20261021-hello-world")), "記事と画像が消える");
+});
+
+test("Google ドキュメントの書き出しのくせを直す（引用の中のリスト、1 行ずつのコード）", () => {
+  const src = mkdtempSync(join(tmpdir(), "blogsrc-")), out = mkdtempSync(join(tmpdir(), "blogout-"));
+  writeFileSync(join(src, "20261020_書き出しのくせ.md"), [
+    "主な仕様は次のとおりです。", "",
+    "> * 画面 160×160  ", "> * 音は 4 チャンネル  ", ">", "> 1. 番号つき", "",
+    "> これはふつうの引用です。", "",
+    "`phase += bpm / 3600;`  ", "`for (let i = 0; i < 3; i++) {`  ", "  `hit(i);`  ", "`}`", "",
+    "本文の中の `code` はそのまま。", "",
+    "`1 行だけのコード`", "",
+  ].join("\n"));
+  run(src, out);
+  const slug = posts(out)[0].slug;
+  const md = readFileSync(join(out, `${slug}.md`), "utf8");
+  assert.match(md, /^\* 画面 160×160\n\* 音は 4 チャンネル\n1\. 番号つき$/m, "引用の中のリストがふつうのリストになる");
+  assert.match(md, /^> これはふつうの引用です。$/m, "ふつうの引用は残る");
+  assert.match(md, /^```\nphase \+= bpm \/ 3600;\nfor \(let i = 0; i < 3; i\+\+\) \{\n  hit\(i\);\n\}\n```$/m, "コードの行がコードブロックになり、字下げも残る");
+  assert.match(md, /本文の中の `code` はそのまま。/);
+  assert.match(md, /^`1 行だけのコード`$/m, "1 行だけならインラインのまま");
 });

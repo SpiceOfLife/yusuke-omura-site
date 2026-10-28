@@ -97,6 +97,40 @@ async function extractImages(md, slug) {
   return { md, images };
 }
 
+// Google ドキュメントの Markdown 書き出しのくせを直す
+//   - インデントの付いた箇条書きは「> * 項目」（引用の中のリスト）として出てくる → ふつうのリストに戻す
+//     （引用の中身がすべてリスト項目のときだけ。ふつうの引用はそのまま）
+//   - 等幅フォントの段落（コード）は 1 行ずつ「`…`」になる → 2 行以上続いたらコードブロックにまとめる
+function normalizeDocsMarkdown(md) {
+  const lines = md.split("\n");
+  const out = [];
+  const LIST = /^\s*(?:[*+-]|\d+\.)\s+\S/;
+  for (let i = 0; i < lines.length; ) {
+    // 引用ブロック
+    if (/^>/.test(lines[i])) {
+      let j = i;
+      while (j < lines.length && /^>/.test(lines[j])) j++;
+      const inner = lines.slice(i, j).map((l) => l.replace(/^>\s?/, ""));
+      const items = inner.filter((l) => l.trim() !== "");
+      if (items.length && items.every((l) => LIST.test(l))) out.push(...inner.filter((l) => l.trim() !== "").map((l) => l.replace(/\s+$/, "")));
+      else out.push(...lines.slice(i, j));
+      i = j; continue;
+    }
+    // コードの行（行全体が 1 つのインラインコード）
+    const CODE = /^(\s*)`([^`]*)`\s*$/;
+    if (CODE.test(lines[i])) {
+      let j = i;
+      while (j < lines.length && CODE.test(lines[j])) j++;
+      if (j - i >= 2) {
+        out.push("```", ...lines.slice(i, j).map((l) => { const [, sp, code] = l.match(CODE); return sp + code; }), "```");
+        i = j; continue;
+      }
+    }
+    out.push(lines[i]); i++;
+  }
+  return out.join("\n");
+}
+
 /* ---------- sync ---------- */
 const prev = existsSync(INDEX) ? JSON.parse(readFileSync(INDEX, "utf8")) : [];
 const byId = new Map(prev.map((p) => [p.id, p]));
@@ -124,7 +158,8 @@ for (const f of source.sort((a, b) => a.name.localeCompare(b.name))) {
     next.push({ ...old, title }); continue;
   }
   const raw = await f.load();
-  const { md, images } = await extractImages(raw, slug);
+  const { md: withImages, images } = await extractImages(raw, slug);
+  const md = normalizeDocsMarkdown(withImages);
   const description = plain(md).slice(0, 120);
   writeFileSync(join(OUT, `${slug}.md`), md.trim() + "\n");
   if (old && old.slug !== slug) { rmSync(join(OUT, `${old.slug}.md`), { force: true }); rmSync(join(IMG, old.slug), { recursive: true, force: true }); }
