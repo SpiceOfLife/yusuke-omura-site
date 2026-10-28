@@ -1,12 +1,21 @@
 [
   {
-    "id": "10-l_d-M2J8ub19KE3ZuMksa5uhfv2yAHwUaplVkZpJE",
-    "slug": "20261026-aaa",
-    "date": "2026-10-26",
-    "title": "aaa",
-    "description": "",
+    "id": "1TB-ND4ga6qWUBNt_6jfvQ0q2I-o-OEaG08BASayBpts",
+    "slug": "20261028-r36s-darkosre",
+    "date": "2026-10-28",
+    "title": "R36Sが起動しなくなったのでdArkOSREで一から入れ直した",
+    "description": "手元の携帯ゲーム機 R36S が起動しなくなったので、OS を一から入れ直しました。R36S は同じ名前でも中身の違う個体が多く、液晶の種類を間違えると画面が真っ黒のままになります。古いカードから自分の個体を特定し、最新の OS を入れて、",
     "image": null,
-    "modifiedTime": "2026-10-26T10:58:53.767Z"
+    "modifiedTime": "2026-10-28T01:29:58.727Z"
+  },
+  {
+    "id": "1kiT6VGlitcidmU3NxPUaNgaxMaU6j98CnIHUmbmswQA",
+    "slug": "20261028-wasm-4",
+    "date": "2026-10-28",
+    "title": "WASM-4でポリリズム・メトロノームを作る",
+    "description": "Web 版の Polygon Metronome を、ファンタジーコンソール WASM-4 で作り直しました。160×160 ドット、4 色、音 4 チャンネルという制約の中で、ポリリズムのメトロノームをどう組んだかをまとめます。言語は A",
+    "image": "/assets/blog/20261028-wasm-4/1.webp",
+    "modifiedTime": "2026-10-28T01:32:04.524Z"
   },
   {
     "id": "1X6s5aE5lFOLYrl4wZWfErhAVGRmi1Fk1SCeurFS6RfM",
@@ -16,14 +25,5 @@
     "description": "リードシート一枚から簡単に編曲、アイデア出し、ボイシングの研究ができるアプリを開発しました。",
     "image": null,
     "modifiedTime": "2026-10-26T13:13:42.328Z"
-  },
-  {
-    "id": "1wqJywm-xGNxBCADgU70jl6NnEoZwu15ONz4v-7LE098",
-    "slug": "20261021-hello-world",
-    "date": "2026-10-21",
-    "title": "Hello World",
-    "description": "テスト aaa aaaaa aa aaa a aaa aaaa a a aa aa",
-    "image": "/assets/blog/20261021-hello-world/1.webp",
-    "modifiedTime": "2026-10-20T15:54:51.242Z"
   }
 ]
