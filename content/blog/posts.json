@@ -1,5 +1,14 @@
 [
   {
+    "id": "1L74SQjUeSEmoTBLlf1M26wrpbJ9svBpwAYRJQATwVcw",
+    "slug": "20261028-polygon-metronome-r36s",
+    "date": "2026-10-28",
+    "title": "Polygon Metronomeが携帯ゲーム機R36Sで動くようになりました",
+    "description": "ポリリズム・メトロノーム「Polygon Metronome」を、携帯ゲーム機 R36S とブラウザで動く WASM-4 版として作り直しました。無料で、ブラウザならインストールなしですぐに試せます。 WASM-4 版のページ： Web 版",
+    "image": "/assets/blog/20261028-polygon-metronome-r36s/1.webp",
+    "modifiedTime": "2026-10-28T02:03:06.599Z"
+  },
+  {
     "id": "1TB-ND4ga6qWUBNt_6jfvQ0q2I-o-OEaG08BASayBpts",
     "slug": "20261028-r36s-darkosre",
     "date": "2026-10-28",
@@ -7,6 +16,15 @@
     "description": "手元の携帯ゲーム機 R36S が起動しなくなったので、OS を一から入れ直しました。R36S は同じ名前でも中身の違う個体が多く、液晶の種類を間違えると画面が真っ黒のままになります。古いカードから自分の個体を特定し、最新の OS を入れて、",
     "image": null,
     "modifiedTime": "2026-10-28T01:29:58.727Z"
+  },
+  {
+    "id": "1cr4V5tT_LdqTT4EB0u0PpKBvhbqD1HtqHtF3N7DcGIQ",
+    "slug": "20261028-r36s-wasm-4",
+    "date": "2026-10-28",
+    "title": "R36SでWASM-4のゲームが起動しないときはコアを自分でビルドする",
+    "description": "WASM-4 で作った Polygon Metronome を R36S に入れたところ、メニューから選んでもすぐメニューに戻ってしまい、起動しませんでした。原因は、OS に WASM-4 を動かすコアの本体が入っていなかったことです。公式",
+    "image": null,
+    "modifiedTime": "2026-10-28T02:03:41.666Z"
   },
   {
     "id": "1kiT6VGlitcidmU3NxPUaNgaxMaU6j98CnIHUmbmswQA",
