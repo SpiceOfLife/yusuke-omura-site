@@ -1,5 +1,14 @@
 [
   {
+    "id": "15bUW8wzpZyHSPJl3OIsBERRP6yF10STNDGSX6zpXW-0",
+    "slug": "20261029-google-workspace-drive-for-desktop",
+    "date": "2026-10-29",
+    "title": "Google Workspaceを解約したらDrive for desktopのアカウントが外せなくなった",
+    "description": "長く使っていた独自ドメイン（ours-blanc.art）の Google Workspace を、データ移行が終わったので解約しました。解約そのものは管理コンソールから数分で終わったのですが、そのあと Mac の Google Drive",
+    "image": null,
+    "modifiedTime": "2026-10-29T12:56:54.613Z"
+  },
+  {
     "id": "1L74SQjUeSEmoTBLlf1M26wrpbJ9svBpwAYRJQATwVcw",
     "slug": "20261028-polygon-metronome-r36s",
     "date": "2026-10-28",
