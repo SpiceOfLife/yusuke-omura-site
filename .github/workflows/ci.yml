@@ -15,8 +15,11 @@ permissions:
   contents: read
 
 # PR は新しい push で古い実行を止める。main は順番に1つずつ本番へ出す
+# グループ名に github.workflow を使うと、ブログ同期から呼ばれたとき（"Blog sync"）と
+# push で動いたとき（"CI / Deploy"）で別グループになり、2つの公開が同時に走って
+# 古いほうが後から本番を上書きしてしまう。本番公開はブランチ名だけで1つのグループにまとめる
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.ref) || format('deploy-{0}', github.ref_name) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
@@ -26,8 +29,10 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
+      # PR 以外は、そのブランチの「実行開始時点の最新」をビルドする。
+      # push 時点のコミットに固定すると、順番待ちのあとに古い内容で本番を上書きしてしまうため
       - uses: actions/checkout@v6
-        with: { ref: "${{ inputs.ref }}" }
+        with: { ref: "${{ github.event_name != 'pull_request' && github.ref_name || '' }}" }
       - uses: actions/setup-node@v6
         with: { node-version: 22, cache: npm }
       - run: npm ci
