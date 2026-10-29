@@ -1,11 +1,13 @@
 # Google Drive の blog フォルダ（YYYYMMDD_タイトル の Google ドキュメント）を読み、
 # 記事の作成・更新・削除があれば main にコミットして、CI（検査 → 本番公開）を実行する。
-#   - 30分ごとに自動実行（予約投稿もこのタイミングで公開される）
-#   - Actions 画面の「Run workflow」から手動でも実行できる
+#   - 1日3回（日本時間 7:07 / 12:07 / 19:07）自動実行（予約投稿もこのタイミングで公開される）
+#     ※ 以前は30分ごとだったが、Actions の実行時間を使い切るため回数を減らした
+#   - すぐ公開したいときは Actions 画面の「Run workflow」から手動で実行する
 name: Blog sync
 on:
   schedule:
-    - cron: "7,37 * * * *"
+    # cron は UTC。3:07 / 10:07 / 22:07 UTC = 日本時間 12:07 / 19:07 / 7:07
+    - cron: "7 3,10,22 * * *"
   workflow_dispatch:
 
 concurrency:
