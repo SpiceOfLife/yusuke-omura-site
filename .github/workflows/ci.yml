@@ -80,6 +80,17 @@ jobs:
         run: |
           sleep 15
           base="${{ vars.SITE_URL || 'https://yusuke-omura.pages.dev' }}"
-          for p in / /profile /works /numbers /lab; do
+          for p in / /profile /works /numbers /lab /live /blog/; do
             code=$(curl -s -o /dev/null -w '%{http_code}' "$base$p"); echo "$p $code"; test "$code" = 200
           done
+      - name: 検索エンジンに更新を知らせる（IndexNow：Bing など）
+        # Google は IndexNow を使わないので、Google にはサイトマップ（Search Console に登録済み）で伝わる
+        continue-on-error: true
+        run: |
+          base="${{ vars.SITE_URL || 'https://yusuke-omura.pages.dev' }}"
+          key=$(ls dist | sed -n 's/^\([0-9a-f]\{32\}\)\.txt$/\1/p' | head -1)
+          [ -n "$key" ] || exit 0
+          urls=$(grep -o '<loc>[^<]*</loc>' dist/sitemap.xml | sed 's#</\?loc>##g' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.stringify(s.trim().split("\n"))))')
+          host=$(echo "$base" | sed 's#https\?://##; s#/.*##')
+          curl -s -o /dev/null -w 'IndexNow %{http_code}\n' -H 'Content-Type: application/json; charset=utf-8' \
+            -d "{\"host\":\"$host\",\"key\":\"$key\",\"keyLocation\":\"$base/$key.txt\",\"urlList\":$urls}" https://api.indexnow.org/indexnow

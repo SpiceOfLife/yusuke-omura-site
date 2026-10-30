@@ -6,3 +6,8 @@
 
 /assets/*
   Cache-Control: public, max-age=2592000
+
+# PR プレビューやデプロイごとの URL（pr-4.yusuke-omura.pages.dev、<ハッシュ>.yusuke-omura.pages.dev）は
+# 本番と同じ内容の複製なので検索に出さない。本番（yusuke-omura.pages.dev）はこの規則に当たらない
+https://:version.yusuke-omura.pages.dev/*
+  X-Robots-Tag: noindex

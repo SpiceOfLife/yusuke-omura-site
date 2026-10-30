@@ -16,6 +16,11 @@ for (const f of pages) {
     const ok = ref === "/" || existsSync(join("dist", path)) || existsSync(join("dist", path + ".html"));
     if (!ok) fail(`${f}: 参照切れ ${ref}`);
   }
+  // リダイレクトを挟む内部リンク（/blog、/profile.html、/blog/x/）は検索エンジンが「リダイレクトあり」として扱うので使わない
+  for (const [, ref] of html.matchAll(/href="(\/[^"#?]*)"/g)) {
+    if (ref.startsWith("/assets/") || ref === "/" || ref === "/favicon.ico") continue;
+    if (ref.endsWith(".html") || ref === "/blog" || (ref.endsWith("/") && ref !== "/blog/")) fail(`${f}: リダイレクトされるリンク ${ref}（正規の URL を使う）`);
+  }
   for (const [, set] of html.matchAll(/srcset="([^"]+)"/g))
     for (const u of set.split(",").map((s) => s.trim().split(" ")[0])) if (u.startsWith("/") && !existsSync(join("dist", u))) fail(`${f}: 参照切れ ${u}`);
 }

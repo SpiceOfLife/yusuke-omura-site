@@ -468,3 +468,9 @@ p { margin: 0 0 1em; }
 .lc-link { display: inline-block; margin-top: 10px; color: var(--brass); border-bottom: 1px solid currentColor; }
 .live-list.past .lc-date, .live-list.past .lc-title { opacity: .6; }
 @media (max-width: 640px) { .live-card { grid-template-columns: 1fr; } }
+
+/* ---------- blog: トップの最新記事・記事下の関連記事 ---------- */
+.latest-posts .btn { margin-top: 36px; }
+.related { max-width: 760px; margin: clamp(60px, 9vw, 110px) auto 0; }
+.related .post-card a { grid-template-columns: 7em minmax(0, 1fr) auto; padding: 18px 0; }
+@media (max-width: 640px) { .related .post-card a { grid-template-columns: minmax(0, 1fr); } }
