@@ -126,6 +126,14 @@ const nextLive = upcoming[0] ? `<section class="section wrap next-live" aria-lab
     <a class="btn reveal" href="/live">Schedule <span class="arrow">→</span></a>
   </section>` : "";
 
+const postsEarly = existsSync("content/blog/posts.json") ? JSON.parse(readFileSync("content/blog/posts.json", "utf8")) : [];
+const latestPosts = postsEarly.length ? `<section class="section wrap latest-posts" aria-labelledby="latest-posts-h">
+    <p class="eyebrow" id="latest-posts-h">Blog</p>
+    <ol class="post-grid">${postsEarly.slice(0, 3).map((p, i) => `<li class="post-card reveal" style="--i:${i}">
+      <a href="/blog/${p.slug}"><time class="pc-date" datetime="${p.date}">${p.date.replaceAll("-", ".")}</time><span class="pc-title">${esc(p.title)}</span><span class="pc-arrow" aria-hidden="true">→</span></a>
+    </li>`).join("\n    ")}</ol>
+    <a class="btn reveal" href="/blog/">All posts <span class="arrow">→</span></a>
+  </section>` : "";
 rmSync("dist", { recursive: true, force: true });
 mkdirSync("dist", { recursive: true });
 cpSync("src/assets", "dist/assets", { recursive: true });
@@ -137,6 +145,7 @@ for (const f of readdirSync("src/pages").filter((f) => f.endsWith(".html"))) {
              .replace(/<!--#header(.*?)-->/s, (_, a) => header(attrs(a)))
              .replace(/<!--#footer\s*-->/, footer())
              .replace(/<!--#nextlive\s*-->/, nextLive)
+             .replace(/<!--#latestposts\s*-->/, latestPosts)
              .replaceAll("__SITE_URL__", SITE);
   writeFileSync(join("dist", f), html);
 }
@@ -165,6 +174,11 @@ ${footer()}${script}
 </body>
 </html>
 `;
+// 関連記事: タイトルの英数字の語（R36S, WASM-4 など）が重なる記事を優先し、足りなければ新しい順で埋める
+const words = (t) => new Set((t.match(/[A-Za-z0-9][A-Za-z0-9.+-]{2,}|[ァ-ヶー]{4,}/g) || []).map((w) => w.toLowerCase()));
+const related = (p, n = 3) => posts.filter((q) => q.slug !== p.slug)
+  .map((q, i) => ({ q, i, s: [...words(q.title)].filter((w) => words(p.title).has(w)).length }))
+  .sort((a, b) => b.s - a.s || a.i - b.i).slice(0, n).map((x) => x.q);
 const card = (p, i) => `<li class="post-card reveal" style="--i:${i}">
       <a href="/blog/${p.slug}">
         <time class="pc-date" datetime="${p.date}">${jpDate(p.date)}</time>
@@ -212,6 +226,10 @@ posts.forEach((p, i) => {
     <div class="prose wrap reveal">
 ${render(md)}
     </div>
+    ${posts.length > 1 ? `<section class="wrap related" aria-labelledby="related-h">
+      <h2 id="related-h" class="eyebrow">More from the blog</h2>
+      <ol class="post-grid">${related(p).map(card).join("\n      ")}</ol>
+    </section>` : ""}
     <nav class="post-nav wrap" aria-label="前後の記事">
       ${newer ? `<a class="pn newer" href="/blog/${newer.slug}"><span class="pn-l">Newer →</span><span class="pn-t">${esc(newer.title)}</span></a>` : "<span></span>"}
       ${older ? `<a class="pn older" href="/blog/${older.slug}"><span class="pn-l">← Older</span><span class="pn-t">${esc(older.title)}</span></a>` : "<span></span>"}
@@ -229,5 +247,6 @@ const urls = readdirSync("src/pages").filter((f) => f.endsWith(".html") && f !==
   .map((f) => `  <url><loc>${SITE}/${f === "index.html" ? "" : f.replace(".html", "")}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>`).join("\n") + `\n  <url><loc>${SITE}/live</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>\n  <url><loc>${SITE}/blog/</loc><lastmod>${posts[0]?.date || new Date().toISOString().slice(0, 10)}</lastmod></url>`
   + posts.map((p) => `\n  <url><loc>${SITE}/blog/${p.slug}</loc><lastmod>${(p.modifiedTime || p.date).slice(0, 10)}</lastmod></url>`).join("");
 writeFileSync("dist/sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
+if (conf.indexNowKey) writeFileSync(`dist/${conf.indexNowKey}.txt`, conf.indexNowKey);
 writeFileSync("dist/robots.txt", `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 console.log(`built dist/ for ${SITE}（ブログ ${posts.length} 件）`);
