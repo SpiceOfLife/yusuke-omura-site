@@ -1,5 +1,50 @@
 [
   {
+    "id": "1UF_nUHem3uNqgwEh8Wc3zmP_QDe65PY6nCi6PLTikYc",
+    "slug": "20261111-m-vave-smk-37-pro-ours-blanc-37",
+    "date": "2026-11-11",
+    "title": "M-VAVE SMK-37 Proをシンセとルーパーにするファームウェア OURS-BLANC 37",
+    "description": "手元の MIDI キーボード M-VAVE SMK-37 Pro を、シンセとルーパーとドラムマシンとして使えるようにするカスタムファームウェア「OURS-BLANC 37」を作りました。パソコンにつながなくても、キーボード単体で音が出て、",
+    "image": null,
+    "modifiedTime": "2026-11-11T02:38:24.860Z"
+  },
+  {
+    "id": "1NbN6DiSR8Bt6Eut0F6-6Vb6OWLnoKFBCn97UVz1htBc",
+    "slug": "20261111-ours-blanc-drum-kit-r36s-vst3-au",
+    "date": "2026-11-11",
+    "title": "ours-blanc Drum Kit：R36S用に作ったドラムをブラウザとVST3・AUで",
+    "description": "叩いて録音できるドラムキット「ours-blanc Drum Kit」を公開しました。ブラウザでそのまま遊べて、Mac / Windows のアプリと、DAW 用のプラグイン（VST3 / AU）もあります。すべて無料です。 ブラウザ版： ",
+    "image": null,
+    "modifiedTime": "2026-11-11T02:38:44.210Z"
+  },
+  {
+    "id": "1uIJP25zWGWvfc_4JswMep32URcusgjLzndV0vVa75AE",
+    "slug": "20261111-polygon-metronome-training-mode",
+    "date": "2026-11-11",
+    "title": "Polygon Metronomeにガイド拍のトレーニングモード（Training Mode）を追加",
+    "description": "ポリリズム・メトロノーム Polygon Metronome に、トレーニングモードを付けました。連符を「鳴っている音を聞いて合わせる」のではなく、「表拍に対してこの位置」と体で感じられるようにするための機能です。Web 版で無料で使えます",
+    "image": null,
+    "modifiedTime": "2026-11-11T02:38:34.281Z"
+  },
+  {
+    "id": "1uusySwu3w83R8436eQEPqEfK5m_pQAvzcgf04qYSz0k",
+    "slug": "20261111-polygon-metronome-son-clave-bossa-nova",
+    "date": "2026-11-11",
+    "title": "Polygon Metronomeにクラーベ（Son Clave）とボサノバ（Bossa Nova）のリズムを追加",
+    "description": "ポリリズム・メトロノーム Polygon Metronome の連符レイヤーに、「リズム」のプリセットを追加しました。各連符を、すべての拍で鳴らすだけでなく、クラーベやボサノバのようなシンコペーションのパターンで鳴らせます。Web 版で無料",
+    "image": null,
+    "modifiedTime": "2026-11-11T02:38:39.421Z"
+  },
+  {
+    "id": "1UxYZ5BeKByFXw3K-B52fyS0S0N7S4dvpx_Tl7qGEKmA",
+    "slug": "20261111-wakemac-iphone-1-mac",
+    "date": "2026-11-11",
+    "title": "WakeMac：iPhoneのボタン1つでスリープ中のMacを起こす",
+    "description": "iPhone のボタンを 1 回押すと、スリープ中の Mac が起きる「WakeMac」を作りました。起きているときにもう一度押せばスリープします。無料・オープンソース（MIT ライセンス）です。 寝ている Mac のところまで行かなくても",
+    "image": null,
+    "modifiedTime": "2026-11-11T02:38:49.106Z"
+  },
+  {
     "id": "15bUW8wzpZyHSPJl3OIsBERRP6yF10STNDGSX6zpXW-0",
     "slug": "20261029-google-workspace-drive-for-desktop",
     "date": "2026-10-29",
