@@ -248,5 +248,7 @@ const urls = readdirSync("src/pages").filter((f) => f.endsWith(".html") && f !==
   + posts.map((p) => `\n  <url><loc>${SITE}/blog/${p.slug}</loc><lastmod>${(p.modifiedTime || p.date).slice(0, 10)}</lastmod></url>`).join("");
 writeFileSync("dist/sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
 if (conf.indexNowKey) writeFileSync(`dist/${conf.indexNowKey}.txt`, conf.indexNowKey);
-writeFileSync("dist/robots.txt", `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
+// Search Console が sitemap.xml を「取得できませんでした」のままにするため、同じ URL 一覧のテキスト版も出す
+writeFileSync("dist/sitemap.txt", [...urls.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]).join("\n") + "\n");
+writeFileSync("dist/robots.txt", `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\nSitemap: ${SITE}/sitemap.txt\n`);
 console.log(`built dist/ for ${SITE}（ブログ ${posts.length} 件）`);
